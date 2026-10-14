@@ -1,0 +1,1 @@
+Zde budou popsané závislosti potřebné pro chod programu a s tím i postup instalace
