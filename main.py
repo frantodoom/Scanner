@@ -41,6 +41,7 @@ class Window(QMainWindow):
             QPushButton:hover {
                 background-color: #0099cc;
             }
+            
             """)
         btn1 = QPushButton("IP Scan")
         btn1.setStyleSheet("""
@@ -58,7 +59,9 @@ class Window(QMainWindow):
         
         sidebar_layout.addWidget(btn0)
         sidebar_layout.addWidget(btn1)
-        
+        btn0.clicked.connect(self.show_port_scan_page)
+        btn1.clicked.connect(self.show_ip_scan_page)
+
         # Sekce pro data
         self.data_area = QWidget()
         self.data_area.setStyleSheet("background-color: #a0e0f0;")
@@ -79,9 +82,48 @@ class Window(QMainWindow):
         layout.addWidget(self.header)
         layout.addLayout(content_layout)
         main_widget.setLayout(layout)
+    def clear_data_area(self):
+        while self.data_layout.count():
+            item = self.data_layout.takeAt(0)
+            widget = item.widget()
+            if widget:
+                widget.deleteLater()
+    def load_page(self, widget):
+        self.clear_data_area()
+        self.data_layout.addWidget(widget)
+    def show_port_scan_page(self):
+        page = QWidget()
+        layout = QVBoxLayout()
+        page.setLayout(layout)
+
+        title = QLabel("Port Scan")
+        title.setStyleSheet("font-size: 40px; color: black;")
+        title.setAlignment(Qt.AlignCenter)
+
+        input_ip = QLabel("Zadej IP adresu:")
+        input_ip.setStyleSheet("font-size: 20px;")
+
+        layout.addWidget(title)
+        layout.addWidget(input_ip)
+
+        self.load_page(page)
+    def show_ip_scan_page(self):
+        page = QWidget()
+        layout = QVBoxLayout()
+        page.setLayout(layout)
+
+        title = QLabel("IP Scan")
+        title.setStyleSheet("font-size: 40px; color: black;")
+        title.setAlignment(Qt.AlignCenter)
+
+        input_ip = QLabel("Zadej IP adresu: ")
+        input_ip.setStyleSheet("font-size: 20px;")
+
+        layout.addWidget(title)
+        layout.addWidget(input_ip)
+        self.load_page(page)
         
 # Run the application
-
 app = QApplication(sys.argv)
 display = Window()
 display.show()
