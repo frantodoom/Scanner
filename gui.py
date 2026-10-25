@@ -1,0 +1,116 @@
+import sys
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLineEdit
+
+
+# Import funkcí ze skenovacích modulů
+# from network_scan import scan_network
+# from port_scan import scan_ports
+
+
+def start_app():
+    app = QApplication(sys.argv)
+    w = Window()
+    w.show()
+    sys.exit(app.exec())
+
+
+class Window(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle('Scanner')
+        self.resize(1200, 800)
+
+        main_widget = QWidget()
+        self.setCentralWidget(main_widget)
+
+        # Header
+        self.header = QLabel("  MAIN MENU")
+        self.header.setAlignment(Qt.AlignLeft)
+        self.header.setStyleSheet("background-color: #3b4cc0; color: black; font-size: 32px;")
+        self.header.setFixedHeight(60)
+
+        # Sidebar
+        self.sidebar = QWidget()
+        sidebar_layout = QVBoxLayout(self.sidebar)
+        self.sidebar.setFixedWidth(180)
+        self.sidebar.setStyleSheet("background-color: #4cc0e0;")
+        sidebar_layout.setSpacing(0)
+        sidebar_layout.setAlignment(Qt.AlignTop)
+
+        btn0 = QPushButton("Network Scan")
+        btn1 = QPushButton("IP Scan")
+
+        sidebar_layout.addWidget(btn0)
+        sidebar_layout.addWidget(btn1)
+
+        btn0.clicked.connect(self.show_port_scan_page)
+        btn1.clicked.connect(self.show_network_scan_page)
+
+        # Data area
+        self.data_area = QWidget()
+        self.data_area.setStyleSheet("background-color: #a0e0f0;")
+        self.data_layout = QVBoxLayout(self.data_area)
+
+        data_label = QLabel("Work in Progress")
+        data_label.setAlignment(Qt.AlignCenter)
+        data_label.setStyleSheet('color: black;font-size: 60px')
+        self.data_layout.addWidget(data_label)
+
+        # Main layout
+        content_layout = QHBoxLayout()
+        content_layout.addWidget(self.sidebar, 1)
+        content_layout.addWidget(self.data_area, 3)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.header)
+        layout.addLayout(content_layout)
+        main_widget.setLayout(layout)
+
+    def clear_data_area(self):
+        while self.data_layout.count():
+            item = self.data_layout.takeAt(0)
+            widget = item.widget()
+            if widget:
+                widget.deleteLater()
+
+    def load_page(self, widget):
+        self.clear_data_area()
+        self.data_layout.addWidget(widget)
+
+    def show_port_scan_page(self):
+        page = QWidget()
+        layout = QVBoxLayout(page)
+
+        title = QLabel("Port Scan")
+        title.setStyleSheet("font-size: 40px; color: black;")
+        title.setAlignment(Qt.AlignCenter)
+
+        input_ip = QLineEdit()
+        input_ip.setPlaceholderText("Zadej IP adresu")
+        input_ip.setStyleSheet("font-size: 20px; color: black")
+
+        btn = QPushButton("Scan ports")
+        btn.clicked.connect(lambda: self.run_port_scan(input_ip.text()))
+
+        self.label = QLabel("")
+        self.label.setStyleSheet("font-size: 20px; color: black")
+
+        layout.addWidget(title)
+        layout.addWidget(input_ip)
+        layout.addWidget(btn)
+        layout.addWidget(self.label)
+
+        self.load_page(page)
+
+    def show_network_scan_page(self):
+        page = QWidget()
+        layout = QVBoxLayout(page)
+
+        title = QLabel("Network Scan")
+        title.setStyleSheet("font-size: 40px; color: black;")
+        title.setAlignment(Qt.AlignCenter)
+
+        input_ip = QLineEdit()
+        input_ip.setPlaceholderText("Zadej IP adresu")
+        input_ip.setStyleSheet
