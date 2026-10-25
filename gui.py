@@ -103,14 +103,61 @@ class Window(QMainWindow):
 
         self.load_page(page)
 
-    def show_network_scan_page(self):
+   def show_network_scan_page(self):
         page = QWidget()
         layout = QVBoxLayout(page)
+        rowIPStart = QHBoxLayout()
+        rowIPRozsah = QHBoxLayout()
 
         title = QLabel("Network Scan")
         title.setStyleSheet("font-size: 40px; color: black;")
         title.setAlignment(Qt.AlignCenter)
 
         input_ip = QLineEdit()
-        input_ip.setPlaceholderText("Zadej IP adresu")
-        input_ip.setStyleSheet
+        input_ip.setPlaceholderText("Např. 192.168.0.")
+        input_ip.setStyleSheet("font-size: 20px; color: black")
+
+        ip_start = QLineEdit()
+        ip_start.setPlaceholderText("0-255")
+        ip_start.setStyleSheet("font-size: 20px; color: black")
+
+        ip_konec = QLineEdit()
+        ip_konec.setPlaceholderText("0-255")
+        ip_konec.setStyleSheet("font-size:20px; color: black")
+
+        btn = QPushButton("Scan network")
+        btn.setStyleSheet("""QPushButton 
+                            {
+                            background-color: white;
+                            color: black;
+                            font-size: 20px;
+                            border-radius: 8px;
+                            padding: 10px;
+                            }
+                            """)
+        btn.clicked.connect(lambda: self.run_network_scan(input_ip.text(),ip_start.text(),ip_konec.text()))
+        
+        self.label = QLabel("")
+        self.label.setStyleSheet("font-size: 20px; color: black")
+
+
+#Vykreslení layoutu stránky
+        layout.addWidget(title)
+
+        rowIPtext = QLabel("Zadej základ IP: ")
+        rowIPtext.setStyleSheet("font-size: 20px; color: black;")
+        rowIPStart.addWidget(rowIPtext)
+        rowIPStart.addWidget(input_ip)
+        layout.addLayout(rowIPStart)
+
+        rowIPMinText = QLabel("Zadej rozsah: ")
+        rowIPMinText.setStyleSheet("font-size: 20px; color: black;")
+        rowIPRozsah.addWidget(rowIPMinText)
+        rowIPRozsah.addWidget(ip_start)
+        rowIPRozsah.addWidget(ip_konec)
+        layout.addLayout(rowIPRozsah)
+
+        layout.addWidget(btn)
+        layout.addWidget(self.label)
+
+        self.load_page(page)
