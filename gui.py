@@ -1,11 +1,8 @@
 import sys
-from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLineEdit
-
-
-# Import funkcí ze skenovacích modulů
-# from network_scan import scan_network
-# from port_scan import scan_ports
+import network_scan
+import threading
+from PySide6.QtCore import Qt, QTimer
+from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLineEdit, QTextEdit
 
 
 def start_app():
@@ -18,6 +15,7 @@ def start_app():
 class Window(QMainWindow):
     def __init__(self):
         super().__init__()
+
         self.setWindowTitle('Scanner')
         self.resize(1200, 800)
 
@@ -39,7 +37,33 @@ class Window(QMainWindow):
         sidebar_layout.setAlignment(Qt.AlignTop)
 
         btn0 = QPushButton("Network Scan")
+        btn0.setStyleSheet(
+                    """QPushButton 
+                    {
+                    background-color: #0077aa;
+                    color: black;
+                    font-size: 20px;
+                    border-radius: 8px;
+                    padding: 10px;
+                    }
+                    QPushButton:hover 
+                    {
+                    background-color: #0099cc;
+                    }""")
         btn1 = QPushButton("IP Scan")
+        btn1.setStyleSheet(
+                            """QPushButton 
+                            {
+                            background-color: #0077aa;
+                            color: black;
+                            font-size: 20px;
+                            border-radius: 8px;
+                            padding: 10px;
+                            }
+                            QPushButton:hover 
+                            {
+                            background-color: #0099cc;
+                            }""")
 
         sidebar_layout.addWidget(btn0)
         sidebar_layout.addWidget(btn1)
@@ -91,7 +115,7 @@ class Window(QMainWindow):
         input_ip.setStyleSheet("font-size: 20px; color: black")
 
         btn = QPushButton("Scan ports")
-        btn.clicked.connect(lambda: self.run_port_scan(input_ip.text()))
+        btn.clicked.connect(lambda: self.run_port_scan(input_ip.text())) #Dopiš funkci
 
         self.label = QLabel("")
         self.label.setStyleSheet("font-size: 20px; color: black")
@@ -103,7 +127,7 @@ class Window(QMainWindow):
 
         self.load_page(page)
 
-   def show_network_scan_page(self):
+    def show_network_scan_page(self):
         page = QWidget()
         layout = QVBoxLayout(page)
         rowIPStart = QHBoxLayout()
@@ -126,16 +150,15 @@ class Window(QMainWindow):
         ip_konec.setStyleSheet("font-size:20px; color: black")
 
         btn = QPushButton("Scan network")
-        btn.setStyleSheet("""QPushButton 
-                            {
-                            background-color: white;
-                            color: black;
-                            font-size: 20px;
-                            border-radius: 8px;
-                            padding: 10px;
-                            }
-                            """)
-        btn.clicked.connect(lambda: self.run_network_scan(input_ip.text(),ip_start.text(),ip_konec.text()))
+        btn.setStyleSheet(
+            """QPushButton{
+            background-color: white;
+            color: black;
+            font-size: 20px;
+            border-radius: 8px;
+            padding: 10px;
+            }""")
+        btn.clicked.connect(lambda: self.scan_click(input_ip,ip_start,ip_konec))
         
         self.label = QLabel("")
         self.label.setStyleSheet("font-size: 20px; color: black")
@@ -144,6 +167,7 @@ class Window(QMainWindow):
 #Vykreslení layoutu stránky
         layout.addWidget(title)
 
+        rowIPStart = QHBoxLayout()
         rowIPtext = QLabel("Zadej základ IP: ")
         rowIPtext.setStyleSheet("font-size: 20px; color: black;")
         rowIPStart.addWidget(rowIPtext)
@@ -155,9 +179,54 @@ class Window(QMainWindow):
         rowIPRozsah.addWidget(rowIPMinText)
         rowIPRozsah.addWidget(ip_start)
         rowIPRozsah.addWidget(ip_konec)
-        layout.addLayout(rowIPRozsah)
 
+        layout.addLayout(rowIPRozsah)
         layout.addWidget(btn)
         layout.addWidget(self.label)
 
+        aktiv_text = QLabel("Využívané IP adresy:")
+        aktiv_text.setStyleSheet("font-size: 20px; color: black")
+        layout.addWidget(aktiv_text)
+
+        self.aktivni_ip = QTextEdit()
+        self.aktivni_ip.setReadOnly(True)
+        self.aktivni_ip.setStyleSheet("""
+                     QTextEdit {
+                   background-color: #1e1e1e;
+                   color: #00ff00;
+                   font-size: 18px;
+                   border: 2px solid #0099cc;
+                   padding: 10px;
+               }""")
+               
+        layout.addWidget(self.aktivni_ip)
         self.load_page(page)
+       
+       
+    def scan_click(self, input_ip, ip_start, ip_konec):
+        self.aktivni_ip.setText("Vyhledávání")
+       
+        self.scan_result = None
+       
+        def worker():
+            self.scan_result = network_scan.run_network_scan(input_ip.text(),int(ip_start.text()),int(ip_konec.text()))
+       
+        thread = threading.Thread(target=worker, daemon=True)
+        thread.start()
+       
+        # timer který kontroluje, zda vlákno skončilo
+        def check_finished():
+            if self.scan_result is not None:
+                text = ""
+                for ip, hostname in self.scan_result:
+                    if hostname:
+                        text += f"{ip} — {hostname}\n"
+                    else:
+                        text += f"{ip} — Neznámý host\n"
+               
+                self.aktivni_ip.setText(text)
+                timer.stop()
+       
+        timer = QTimer()
+        timer.timeout.connect(check_finished)
+        timer.start(100)  # kontrola každých 100 ms   
