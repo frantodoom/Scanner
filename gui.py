@@ -1,6 +1,7 @@
-import sys
-import network_scan
+import network_scan, this_pc
 import threading
+import sys
+import ipaddress
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLineEdit, QTextEdit
 
@@ -36,7 +37,7 @@ class Window(QMainWindow):
         sidebar_layout.setSpacing(0)
         sidebar_layout.setAlignment(Qt.AlignTop)
 
-        btn0 = QPushButton("Network Scan")
+        btn0 = QPushButton("Toto PC")
         btn0.setStyleSheet(
                     """QPushButton 
                     {
@@ -50,7 +51,7 @@ class Window(QMainWindow):
                     {
                     background-color: #0099cc;
                     }""")
-        btn1 = QPushButton("IP Scan")
+        btn1 = QPushButton("Network Scan")
         btn1.setStyleSheet(
                             """QPushButton 
                             {
@@ -64,12 +65,28 @@ class Window(QMainWindow):
                             {
                             background-color: #0099cc;
                             }""")
+        btn2 = QPushButton("IP Scan")
+        btn2.setStyleSheet(
+                    """QPushButton 
+                    {
+                    background-color: #0077aa;
+                    color: black;
+                    font-size: 20px;
+                    border-radius: 8px;
+                    padding: 10px;
+                    }
+                    QPushButton:hover 
+                    {
+                    background-color: #0099cc;
+                    }""")
 
         sidebar_layout.addWidget(btn0)
         sidebar_layout.addWidget(btn1)
+        sidebar_layout.addWidget(btn2)
 
-        btn0.clicked.connect(self.show_port_scan_page)
-        btn1.clicked.connect(self.show_network_scan_page)
+        btn0.clocked.connect(self.show_this_pc)
+        btn1.clicked.connect(self.show_port_scan_page)
+        btn2.clicked.connect(self.show_network_scan_page)
 
         # Data area
         self.data_area = QWidget()
@@ -101,6 +118,50 @@ class Window(QMainWindow):
     def load_page(self, widget):
         self.clear_data_area()
         self.data_layout.addWidget(widget)
+    
+    def show_this_pc(self):
+        pocitac = this_pc.PC()
+        pocitac.collect()
+
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.setSpacing(0)
+        layout.setContentsMargins(10,0,0,40)
+
+        title = QLabel("Informace o tomto PC")
+        title.setStyleSheet("font-size: 40px; color: black; margin: 0px; padding: 0px")
+        title.setAlignment(Qt.AlignTop | Qt.AlignCenter)
+        title.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        title.setFixedHeight(50)
+
+        ip_site = ipaddress.IPv4Network(f"{pocitac.ipv4}/{pocitac.subnet_mask}", strict=False)
+
+        form_widget = QWidget()
+        form = QFormLayout(form_widget)
+        form.setSpacing(0)
+        form.setContentsMargins(20,30,0,0)
+        form_widget.setStyleSheet(
+                """
+                QLabel {
+                font-size: 20px;
+                color: black;
+                }""")
+
+        form.addRow("IPv4 adresa sítě: ", QLabel(str(ip_site)))
+        form.addRow("Maska sítě: ", QLabel(pocitac.subnet_mask))
+        form.addRow("IPv4 adresa zařízení: ", QLabel(pocitac.ipv4))
+        form.addRow("IPv6 adresa zařízení: ",QLabel(pocitac.ipv6))
+        form.addRow("IPv4 adresa gateway: ", QLabel(pocitac.gateway_ip))
+        form.addRow("DNS servery:",None)
+        for i in pocitac.dns_servery:
+            ip, jmeno = i
+            if "NetBIOS" in jmeno or ip is None:
+                continue
+            form.addRow(QLabel(""),QLabel(f"{ip}"))
+
+        layout.addWidget(title)
+        layout.addWidget(form_widget)
+        self.load_page(page)
 
     def show_port_scan_page(self):
         page = QWidget()
