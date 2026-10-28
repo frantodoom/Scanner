@@ -27,7 +27,7 @@ def scan_network(base_ip: str, start: int, end: int):
 
     for i in range(start, end + 1):
         ip = f"{base_ip}.{i}"
-
+        print(f"Pingování číslo {i} z {end+1}")
         if ping(ip):
             hostname = resolve_hostname(ip)
             active_hosts.append((ip, hostname))
