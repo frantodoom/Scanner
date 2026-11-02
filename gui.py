@@ -166,25 +166,69 @@ class Window(QMainWindow):
     def show_port_scan_page(self):
         page = QWidget()
         layout = QVBoxLayout(page)
+        rowIP = QHBoxLayout()
+        rowIPRozsah = QHBoxLayout()
 
         title = QLabel("Port Scan")
         title.setStyleSheet("font-size: 40px; color: black;")
-        title.setAlignment(Qt.AlignCenter)
+        title.setAlignment(Qt.AlignCenter | Qt.AlignTop)
 
+        ip_popis = QLabel("Zadej IP adresu")
+        ip_popis.setStyleSheet("font-size: 20px; color: black;")
+        
         input_ip = QLineEdit()
-        input_ip.setPlaceholderText("Zadej IP adresu")
+        input_ip.setPlaceholderText("Např. 192.168.0.1 ")
         input_ip.setStyleSheet("font-size: 20px; color: black")
 
-        btn = QPushButton("Scan ports")
-        btn.clicked.connect(lambda: self.run_port_scan(input_ip.text())) #Dopiš funkci
+        rozsah_popis = QLabel("Zadej rozsah: ")
+        rozsah_popis.setStyleSheet("font-size: 20px; color: black")
 
-        self.label = QLabel("")
-        self.label.setStyleSheet("font-size: 20px; color: black")
+        rozsah_min = QLineEdit()
+        rozsah_min.setPlaceholderText("0-65556")
+        rozsah_min.setStyleSheet("font-size: 20px; color: black")
+
+        rozsah_max = QLineEdit()
+        rozsah_max.setPlaceholderText("0-65556")
+        rozsah_max.setStyleSheet("font-size: 20px; color: black")
+
+        btn = QPushButton("Scan ports")
+        btn.setStyleSheet(
+                """QPushButton {
+                background-color: white;
+                color: black;
+                font-size: 20px;
+                border-radius: 8px;
+                padding: 10px;
+                }""")
+        #btn.clicked.connect()
+
+        open_portyL = QLabel("Otevřené porty:")
+        open_portyL.setStyleSheet("font-size:20px; color:black;")
+
+        open_portyT = QTextEdit()
+        open_portyT.setReadOnly(True)
+        open_portyT.setStyleSheet(
+                """
+                QTextEdit {
+                    background-color: #1e1e1e;
+                    color: #00ff00;
+                    font-size: 18px;
+                    border: 2px solid #0099cc;
+                    padding: 10px;
+                }""")
 
         layout.addWidget(title)
-        layout.addWidget(input_ip)
+        rowIP.addWidget(ip_popis)
+        rowIP.addWidget(input_ip)
+        rowIPRozsah.addWidget(rozsah_popis)
+        rowIPRozsah.addWidget(rozsah_min)
+        rowIPRozsah.addWidget(rozsah_max)
+        layout.addLayout(rowIP)
+        layout.addLayout(rowIPRozsah)
         layout.addWidget(btn)
-        layout.addWidget(self.label)
+        layout.addWidget(open_portyL)
+        layout.addWidget(open_portyT)
+        
 
         self.load_page(page)
 
