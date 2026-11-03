@@ -1,4 +1,4 @@
-import network_scan, this_pc
+import network_scan, this_pc, port_scan
 import threading
 import sys
 import ipaddress
@@ -200,14 +200,14 @@ class Window(QMainWindow):
                 border-radius: 8px;
                 padding: 10px;
                 }""")
-        #btn.clicked.connect()
+        btn.clicked.connect(lambda: self.port_click(input_ip.text(),rozsah_min.text(),rozsah_max.text()))
 
         open_portyL = QLabel("Otevřené porty:")
         open_portyL.setStyleSheet("font-size:20px; color:black;")
 
-        open_portyT = QTextEdit()
-        open_portyT.setReadOnly(True)
-        open_portyT.setStyleSheet(
+        self.open_portyT = QTextEdit()
+        self.open_portyT.setReadOnly(True)
+        self.open_portyT.setStyleSheet(
                 """
                 QTextEdit {
                     background-color: #1e1e1e;
@@ -227,10 +227,40 @@ class Window(QMainWindow):
         layout.addLayout(rowIPRozsah)
         layout.addWidget(btn)
         layout.addWidget(open_portyL)
-        layout.addWidget(open_portyT)
+        layout.addWidget(self.open_portyT)
         
 
         self.load_page(page)
+
+    def port_click(self, input_ip, min, max):
+        self.open_portyT.setText("Kontrola portů, může to chvíli trvat")
+
+        # uložíme výsledky sem
+        self.aport:int=[]
+        self.cport:int=[]
+
+        def worker():
+            self.aport,self.cport = port_scan.run_port_scan(input_ip,int(min),int(max))
+
+        thread = threading.Thread(target=worker, daemon=True)
+        thread.start()
+
+        # timer který kontroluje, zda vlákno skončilo
+        def check_finished():
+            if not thread.is_alive():
+                if len(self.aport)>0:
+                    text = ""
+                    for port in self.aport:
+                        text += f"{port},"
+                else:
+                    text=f"V rozsahu portů {min} až {max} nejsou otevřené žádné porty"
+                
+                self.open_portyT.setText(text)
+                timer.stop()
+
+        timer = QTimer()
+        timer.timeout.connect(check_finished)
+        timer.start(100)  # kontrola každých 100 ms
 
     def show_network_scan_page(self):
         page = QWidget()
