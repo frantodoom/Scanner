@@ -2,34 +2,36 @@
 import sys
 import socket
 from datetime import datetime
- 
-# Defining a target
-target_hostname = socket.gethostname()
-target = socket.gethostbyname(target_hostname)
 
+def run_port_scan(target_ip, min:int, max:int)->list[int]:
+        open_ports:int=[]
+        closed_ports:int=[]
+        try:
+                for port in range(min, max+1):
+                        print(f"Scan portu číslo {port}")
+                        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                        socket.setdefaulttimeout(1)
+                               
+                        # returns an error indicator
+                        result = s.connect_ex((target_ip,port))
+                        if result ==0:
+                                print(f"Port č.{port} je otevřený")
+                                open_ports.append(port)
+                                s.close()
+                        else:
+                                closed_ports.append(port)
+                                print(f"Port č.{port} je zavřený")
+                                s.close()
+        except KeyboardInterrupt:
+                print("\n Opouštění programu")
+                sys.exit()
+        except socket.gaierror:
+                print("\n Hostname Could Not Be Resolved")
+                sys.exit()
+        except socket.error:
+                print("\n Server neodpovídá")
+                sys.exit()
+        
+        return open_ports,closed_ports
 
- 
-try:
-    
-    # will scan ports between 1 to 65,535
-    for port in range(1,65535):
-        if port%10 == 0:
-              print(f"Sken portu číslo {port}")
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        socket.setdefaulttimeout(1)
-        
-        # returns an error indicator
-        result = s.connect_ex((target,port))
-        if result ==0:
-            print("Port {} is open".format(port))
-        s.close()
-        
-except KeyboardInterrupt:
-        print("\n Exiting Program !!!!")
-        sys.exit()
-except socket.gaierror:
-        print("\n Hostname Could Not Be Resolved !!!!")
-        sys.exit()
-except socket.error:
-        print("\n Server not responding !!!!")
-        sys.exit()
+#run_port_scan('10.215.250.227',140,150)
